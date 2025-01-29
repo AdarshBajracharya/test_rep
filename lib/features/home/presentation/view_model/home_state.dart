@@ -24,7 +24,7 @@ class HomeState extends Equatable {
         const Center(
           child: Text('Dashboard'),
         ),
-       BlocProvider(
+        BlocProvider(
           create: (context) => getIt<CourseBloc>(),
           child: CourseView(),
         ),

@@ -1,35 +1,36 @@
 part of 'course_bloc.dart';
 
 class CourseState extends Equatable {
-  final List<CourseEntity> courses;
   final bool isLoading;
-  final String? error;
+  final List<CourseEntity> courses;
+  final String error;
 
   const CourseState({
-    required this.courses,
     required this.isLoading,
-    this.error,
+    required this.courses,
+    required this.error,
   });
 
   factory CourseState.initial() {
     return CourseState(
-      courses: [],
       isLoading: false,
+      courses: [],
+      error: '',
     );
   }
 
   CourseState copyWith({
-    List<CourseEntity>? Coursees,
     bool? isLoading,
+    List<CourseEntity>? courses,
     String? error,
   }) {
     return CourseState(
-      courses: Coursees ?? courses,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      courses: courses ?? this.courses,
+      error: error ?? this.error,
     );
   }
 
   @override
-  List<Object?> get props => [courses, isLoading, error];
+  List<Object?> get props => [isLoading, courses, error];
 }

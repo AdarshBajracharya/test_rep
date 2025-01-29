@@ -7,16 +7,39 @@ sealed class RegisterEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// class NavigateLoginScreenEvent extends RegisterEvent {
-//   final BuildContext context;
-//   final Widget destination;
-
-//   const NavigateLoginScreenEvent({
-//     required this.context,
-//     required this.destination,
-//   });
-// }
-
 class LoadCoursesAndBatches extends RegisterEvent {}
 
-class RegisterStudent extends RegisterEvent {}
+class RegisterStudent extends RegisterEvent {
+  final BuildContext context;
+  final String fName;
+  final String lName;
+  final String phone;
+  final BatchEntity batch;
+  final List<CourseEntity> courses;
+  final String username;
+  final String password;
+  final String? image;
+
+  const RegisterStudent({
+    required this.context,
+    required this.fName,
+    required this.lName,
+    required this.phone,
+    required this.batch,
+    required this.courses,
+    required this.username,
+    required this.password,
+    this.image
+  });
+}
+
+class UploadImageEvent extends RegisterEvent{
+  final BuildContext context;
+  final File? img;
+
+  const UploadImageEvent({
+    required this.context,
+    required this.img
+  });
+
+}

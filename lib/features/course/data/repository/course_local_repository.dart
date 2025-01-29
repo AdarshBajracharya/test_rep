@@ -1,41 +1,45 @@
 import 'package:dartz/dartz.dart';
 import 'package:softwarica_student_management_bloc/core/error/failure.dart';
-import 'package:softwarica_student_management_bloc/features/course/data/data_source/local_datasource/course_local_datasource.dart';
+import 'package:softwarica_student_management_bloc/features/course/data/data_source/local_datasource/course_local_data_source.dart';
 import 'package:softwarica_student_management_bloc/features/course/domain/entity/course_entity.dart';
 import 'package:softwarica_student_management_bloc/features/course/domain/repository/course_repository.dart';
 
 class CourseLocalRepository implements ICourseRepository {
-  final CourseLocalDatasource _courseLocalDatasource;
+  final CourseLocalDataSource _courseLocalDataSource;
 
-  CourseLocalRepository(this._courseLocalDatasource);
+  CourseLocalRepository({required CourseLocalDataSource courseLocalDataSource})
+      : _courseLocalDataSource = courseLocalDataSource;
 
   @override
-  Future<Either<Failure, void>> createCourse(CourseEntity courseEntity) {
+  Future<Either<Failure, void>> createCourse(CourseEntity course) {
     try {
-      _courseLocalDatasource.createCourse(courseEntity);
+      _courseLocalDataSource.createCourse(course);
       return Future.value(Right(null));
     } catch (e) {
-      return Future.value(Left(LocalDatabaseFailure(message: 'e')));
+      return Future.value(Left(LocalDatabaseFailure(message: e.toString())));
     }
   }
 
   @override
   Future<Either<Failure, void>> deleteCourse(String id) {
     try {
-      _courseLocalDatasource.deleteCourse(id);
+      _courseLocalDataSource.deleteCourse(id);
       return Future.value(Right(null));
     } catch (e) {
-      return Future.value(Left(LocalDatabaseFailure(message: 'e')));
+      return Future.value(Left(LocalDatabaseFailure(message: e.toString())));
     }
   }
 
   @override
-  Future<Either<Failure, List<CourseEntity>>> getAllCourses()async {
+  Future<Either<Failure, List<CourseEntity>>> getCourses() {
     try {
-      var coursees =  await _courseLocalDatasource.getAllCourse();
-      return Future.value(Right(coursees));
+      return _courseLocalDataSource.getCourses().then(
+        (value) {
+          return Right(value);
+        },
+      );
     } catch (e) {
-      return Future.value(Left(LocalDatabaseFailure(message: 'e')));
+      return Future.value(Left(LocalDatabaseFailure(message: e.toString())));
     }
   }
 }

@@ -7,18 +7,23 @@ import 'package:softwarica_student_management_bloc/features/batch/domain/reposit
 class DeleteBatchParams extends Equatable {
   final String batchId;
 
-  const DeleteBatchParams(this.batchId);
+  const DeleteBatchParams({required this.batchId});
+
+  const DeleteBatchParams.empty() : batchId = '_empty.string';
 
   @override
-  List<Object?> get props => [batchId];
+  List<Object?> get props => [
+        batchId,
+      ];
 }
 
 class DeleteBatchUsecase implements UsecaseWithParams<void, DeleteBatchParams> {
-  final IBatchRepository repository;
+  final IBatchRepository batchRepository;
 
-  DeleteBatchUsecase(this.repository);
+  DeleteBatchUsecase({required this.batchRepository});
+
   @override
-  Future<Either<Failure, void>> call(DeleteBatchParams params) {
-    return repository.deleteBatch(params.batchId);
+  Future<Either<Failure, void>> call(DeleteBatchParams params) async {
+    return await batchRepository.deleteBatch(params.batchId);
   }
 }

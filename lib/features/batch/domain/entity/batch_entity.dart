@@ -8,11 +8,7 @@ class BatchEntity extends Equatable {
     this.batchId,
     required this.batchName,
   });
-  
+
   @override
-  // TODO: implement props
-  List<Object?> get props => [batchId,batchName];
-
-  
-
+  List<Object?> get props => [batchId, batchName];
 }

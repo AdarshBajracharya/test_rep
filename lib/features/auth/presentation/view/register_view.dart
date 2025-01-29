@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:softwarica_student_management_bloc/features/auth/presentation/view_model/signup/register_bloc.dart';
 import 'package:softwarica_student_management_bloc/features/batch/domain/entity/batch_entity.dart';
 import 'package:softwarica_student_management_bloc/features/batch/presentation/view_model/batch_bloc.dart';
@@ -27,6 +31,46 @@ class _RegisterViewState extends State<RegisterView> {
 
   BatchEntity? _dropDownValue;
   final List<CourseEntity> _lstCourseSelected = [];
+
+  //restricted vaneko purano phone haru ko lagi use hunxa so purano ani naya ko lagi duitai condition lekheko
+  checkCameraPermission() async {
+    if (await Permission.camera.request().isRestricted ||
+        await Permission.camera.isDenied) {
+      await Permission.camera.request();
+    }
+  }
+
+  File? _img;
+  String? imagePath;
+
+  Future _browseImage(ImageSource imageSource) async {
+    try {
+      final image = await ImagePicker().pickImage(source: imageSource);
+      if (image != null) {
+        setState(() {
+          imagePath = image.path;
+          print("path set $imagePath");
+          _img = File(image.path);
+        });
+      } else {
+        return;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  void _handleImageSelection(
+      BuildContext innercontext, ImageSource source) async {
+    await _browseImage(source);
+    print("Selected image: $_img");
+    if (_img != null) {
+      context.read<RegisterBloc>().add(
+            UploadImageEvent(context: context, img: _img),
+          );
+    }
+    Navigator.pop(innercontext);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,21 +102,26 @@ class _RegisterViewState extends State<RegisterView> {
                             top: Radius.circular(20),
                           ),
                         ),
-                        builder: (context) => Padding(
+                        builder: (innercontext) => Padding(
                           padding: const EdgeInsets.all(20),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  Navigator.pop(context);
-                                  // Upload image it is not null
+                                  checkCameraPermission();
+                                  _handleImageSelection(
+                                      context, ImageSource.camera);
                                 },
                                 icon: const Icon(Icons.camera),
                                 label: const Text('Camera'),
                               ),
                               ElevatedButton.icon(
-                                onPressed: () {},
+                                onPressed: () {
+                                  checkCameraPermission();
+                                  _handleImageSelection(
+                                      context, ImageSource.gallery);
+                                },
                                 icon: const Icon(Icons.image),
                                 label: const Text('Gallery'),
                               ),
@@ -86,13 +135,13 @@ class _RegisterViewState extends State<RegisterView> {
                       width: 200,
                       child: CircleAvatar(
                         radius: 50,
-                        // backgroundImage: _img != null
-                        //     ? FileImage(_img!)
-                        //     : const AssetImage('assets/images/profile.png')
-                        //         as ImageProvider,
-                        backgroundImage:
-                            const AssetImage('assets/images/profile.png')
+                        backgroundImage: _img != null
+                            ? FileImage(_img!)
+                            : const AssetImage('assets/images/profile.png')
                                 as ImageProvider,
+                        // backgroundImage:
+                        //     const AssetImage('assets/images/profile.png')
+                        //         as ImageProvider,
                       ),
                     ),
                   ),
@@ -232,7 +281,21 @@ class _RegisterViewState extends State<RegisterView> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_key.currentState!.validate()) {}
+                        if (_key.currentState!.validate()) {
+                          context.read<RegisterBloc>().add(
+                                RegisterStudent(
+                                  context: context,
+                                  fName: _fnameController.text,
+                                  lName: _lnameController.text,
+                                  phone: _phoneController.text,
+                                  batch: _dropDownValue!,
+                                  courses: _lstCourseSelected,
+                                  username: _usernameController.text,
+                                  password: _passwordController.text,
+                                  image: imagePath ?? "No Image Selected",
+                                ),
+                              );
+                        }
                       },
                       child: const Text('Register'),
                     ),

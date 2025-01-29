@@ -6,7 +6,8 @@ class CourseView extends StatelessWidget {
   CourseView({super.key});
 
   final courseNameController = TextEditingController();
-  final _batchViewFormKey = GlobalKey<FormState>();
+
+  final _courseViewFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +15,7 @@ class CourseView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Form(
-          key: _batchViewFormKey,
+          key: _courseViewFormKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -30,53 +31,48 @@ class CourseView extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
-                  if (_batchViewFormKey.currentState!.validate()) {
+                  if (_courseViewFormKey.currentState!.validate()) {
                     context.read<CourseBloc>().add(
-                          AddCourse(courseNameController.text.trim()),
+                          CreateCourse(courseName: courseNameController.text),
                         );
                   }
                 },
-                child: const Text('Add Course'),
+                child: Text('Add Course'),
               ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: BlocBuilder<CourseBloc, CourseState>(
-                  builder: (context, state) {
-                    if (state.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (!state.isLoading) {
-                      final batchList = state.courses;
-                      if (batchList.isEmpty) {
-                        return const Center(child: Text('No courses found.'));
-                      }
-                      return ListView.builder(
-                        itemCount: batchList.length,
+              SizedBox(height: 10),
+              BlocBuilder<CourseBloc, CourseState>(
+                builder: (context, state) {
+                  if (state.courses.isEmpty) {
+                    return Center(child: Text('No Courses Added Yet'));
+                  } else if (state.isLoading) {
+                    return CircularProgressIndicator();
+                  } else {
+                    return Expanded(
+                      child: ListView.builder(
+                        itemCount: state.courses.length,
                         itemBuilder: (context, index) {
-                          if (index < batchList.length) {
-                            return ListTile(
-                              title: Text(batchList[index].courseName),
-                              subtitle: Text(state.courses[index].courseId!),
-                              trailing: IconButton(
-                                  onPressed: () {
-                                    context.read<CourseBloc>().add(DeleteCourse(
-                                        state.courses[index].courseId!));
-                                  },
-                                  icon: Icon(Icons.delete)),
-                            );
-                          } else {
-                            return const SizedBox(); // Handle invalid index
-                          }
+                          final course = state.courses[index];
+                          return ListTile(
+                            title: Text(course.courseName),
+                            subtitle: Text(course.courseId!),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                context.read<CourseBloc>().add(
+                                      DeleteCourse(id: course.courseId!),
+                                    );
+                              },
+                            ),
+                          );
                         },
-                      );
-                    } else {
-                      return const Center(child: Text('Unexpected state.'));
-                    }
-                  },
-                ),
-              ),
+                      ),
+                    );
+                  }
+                },
+              )
             ],
           ),
         ),

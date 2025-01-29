@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:softwarica_student_management_bloc/core/common/snackbar/my_snackbar.dart';
 import 'package:softwarica_student_management_bloc/features/auth/presentation/view/register_view.dart';
 import 'package:softwarica_student_management_bloc/features/auth/presentation/view_model/login/login_bloc.dart';
-import 'package:softwarica_student_management_bloc/features/home/presentation/view/home_view.dart';
+
+import '../../../../core/common/snackbar/my_snackbar.dart';
+import '../../../home/presentation/view/home_view.dart';
 
 class LoginView extends StatelessWidget {
   LoginView({super.key});
@@ -13,6 +14,7 @@ class LoginView extends StatelessWidget {
   final _passwordController = TextEditingController(text: 'kiran123');
 
   final _gap = const SizedBox(height: 8);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,22 +68,30 @@ class LoginView extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          if (_usernameController.text == 'kiran' &&
-                              _passwordController.text == 'kiran123') {
-                            context.read<LoginBloc>().add(
-                                  NavigateHomeScreenEvent(
-                                    destination: HomeView(),
-                                    context: context,
-                                  ),
-                                );
-                          } else {
-                            showMySnackBar(
-                              context: context,
-                              message: 'Invalid username or password',
-                              color: Colors.red,
-                            );
-                          }
+                          context.read<LoginBloc>().add(
+                                LoginStudentEvent(
+                                  context: context,
+                                  username: _usernameController.text,
+                                  password: _passwordController.text,
+                                ),
+                              );
                         }
+
+                            // if (_usernameController.text == 'kiran' &&
+                            //     _passwordController.text == 'kiran123') {
+                            //   context.read<LoginBloc>().add(
+                            //         NavigateHomeScreenEvent(
+                            //           destination: HomeView(),
+                            //           context: context,
+                            //         ),
+                            //       );
+                            // } else {
+                            //   showMySnackBar(
+                            //     context: context,
+                            //     message: 'Invalid username or password',
+                            //     color: Colors.red,
+                            //   );
+                            // }
                       },
                       child: const SizedBox(
                         height: 50,

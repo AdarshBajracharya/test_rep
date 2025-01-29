@@ -4,15 +4,12 @@ import 'package:softwarica_student_management_bloc/app/constants/hive_table_cons
 import 'package:softwarica_student_management_bloc/features/batch/domain/entity/batch_entity.dart';
 import 'package:uuid/uuid.dart';
 
-// dart run build_runner build -d
-
 part 'batch_hive_model.g.dart';
 
 @HiveType(typeId: HiveTableConstant.batchTableId)
 class BatchHiveModel extends Equatable {
   @HiveField(0)
   final String? batchId;
-
   @HiveField(1)
   final String batchName;
 
@@ -21,20 +18,41 @@ class BatchHiveModel extends Equatable {
     required this.batchName,
   }) : batchId = batchId ?? const Uuid().v4();
 
-  const BatchHiveModel.intial()
-      : batchId = "",
-        batchName = "";
+  // Initail Constructor
+  const BatchHiveModel.initial()
+      : batchId = '',
+        batchName = '';
 
-  //database le hivemodel matta bujxa so ui bata ako entity lai hive ma convert garxa esle
+  // From Entity
   factory BatchHiveModel.fromEntity(BatchEntity entity) {
-    return BatchHiveModel(batchId: entity.batchId, batchName: entity.batchName);
+    return BatchHiveModel(
+      batchId: entity.batchId,
+      batchName: entity.batchName,
+    );
   }
 
-  // ui le entity matra linxa so data tanda yo use hunxa
+  // To Entity
   BatchEntity toEntity() {
-    return BatchEntity(batchId: batchId, batchName: batchName);
+    return BatchEntity(
+      batchId: batchId,
+      batchName: batchName,
+    );
   }
 
   @override
   List<Object?> get props => [batchId, batchName];
 }
+
+
+
+  // From Entity List
+  List<BatchHiveModel> fromEntityList(List<BatchEntity> entityList) {
+    return entityList
+        .map((entity) => BatchHiveModel.fromEntity(entity))
+        .toList();
+  }
+
+  // To Entity List
+  List<BatchEntity> toEntityList(List<BatchHiveModel> hiveList) {
+    return hiveList.map((hive) => hive.toEntity()).toList();
+  }

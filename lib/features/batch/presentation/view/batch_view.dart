@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:softwarica_student_management_bloc/core/common/snackbar/my_snackbar.dart';
 import 'package:softwarica_student_management_bloc/features/batch/presentation/view_model/batch_bloc.dart';
 
 class BatchView extends StatelessWidget {
   BatchView({super.key});
 
   final batchNameController = TextEditingController();
+
   final _batchViewFormKey = GlobalKey<FormState>();
 
   @override
@@ -30,53 +32,51 @@ class BatchView extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
                   if (_batchViewFormKey.currentState!.validate()) {
                     context.read<BatchBloc>().add(
-                          AddBatch(batchNameController.text.trim()),
-                        );
+                      AddBatch(batchNameController.text),
+                    );
                   }
                 },
-                child: const Text('Add Batch'),
+                child: Text('Add Batch'),
               ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: BlocBuilder<BatchBloc, BatchState>(
-                  builder: (context, state) {
-                    if (state.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (!state.isLoading) {
-                      final batchList = state.batches;
-                      if (batchList.isEmpty) {
-                        return const Center(child: Text('No batches found.'));
-                      }
-                      return ListView.builder(
-                        itemCount: batchList.length,
-                        itemBuilder: (context, index) {
-                          if (index < batchList.length) {
-                            return ListTile(
-                              title: Text(batchList[index].batchName),
-                              subtitle: Text(state.batches[index].batchId!),
-                              trailing: IconButton(
-                                  onPressed: () {
-                                    context.read<BatchBloc>().add(DeleteBatch(
-                                        state.batches[index].batchId!));
-                                  },
-                                  icon: Icon(Icons.delete)),
-                            );
-                          } else {
-                            return const SizedBox(); // Handle invalid index
-                          }
-                        },
-                      );
-                    } else {
-                      return const Center(child: Text('Unexpected state.'));
-                    }
-                  },
-                ),
-              ),
+              SizedBox(height: 10),
+              BlocBuilder<BatchBloc, BatchState>(builder: (context, state) {
+                if (state.batches.isEmpty) {
+                  return Center(child: Text('No Batches Added Yet'));
+                } else if (state.isLoading) {
+                  return CircularProgressIndicator();
+                } else if (state.error != null) {
+                  return showMySnackBar(
+                    context: context,
+                    message: state.error!,
+                    color: Colors.red,
+                  );
+                } else {
+                  return Expanded(
+                    child: ListView.builder(
+                      itemCount: state.batches.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(state.batches[index].batchName),
+                          subtitle: Text(state.batches[index].batchId!),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              context.read<BatchBloc>().add(
+                                DeleteBatch(state.batches[index].batchId!),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+              })
             ],
           ),
         ),

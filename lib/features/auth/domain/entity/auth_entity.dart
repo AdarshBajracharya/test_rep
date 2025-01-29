@@ -3,28 +3,29 @@ import 'package:softwarica_student_management_bloc/features/batch/domain/entity/
 import 'package:softwarica_student_management_bloc/features/course/domain/entity/course_entity.dart';
 
 class AuthEntity extends Equatable {
-  final String? authId;
+  final String? userId;
   final String fName;
   final String lName;
   final String? image;
-  final String phoneNo;
-  //foreign key
-  final BatchEntity batchEntity;
-  final List<CourseEntity> courseEntity;
+  final String phone;
+  final BatchEntity batch;
+  final List<CourseEntity> courses;
   final String username;
-  final String password;
+  final String? password;
 
-  const AuthEntity(
-      {this.authId,
-      required this.fName,
-      required this.lName,
-      this.image,
-      required this.password,
-      required this.phoneNo,
-      required this.batchEntity,
-      required this.courseEntity,
-      required this.username});
+  const AuthEntity({
+    this.userId,
+    required this.fName,
+    required this.lName,
+    this.image,
+    required this.phone,
+    required this.batch,
+    required this.courses,
+    required this.username,
+    required this.password,
+  });
 
   @override
-  List<Object?> get props => [authId];
+  List<Object?> get props =>
+      [userId, fName, lName, image, batch, phone, courses, username, password];
 }

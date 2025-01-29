@@ -1,85 +1,75 @@
+import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/create_Course_usecase.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/delete_Course_usecase.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/get_all_Course_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/course/domain/entity/course_entity.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/create_course_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/delete_course_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/get_all_course_usecase.dart';
 
 part 'course_event.dart';
 part 'course_state.dart';
 
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
-  final CreateCourseUsecase _createCourseUsecase;
   final GetAllCourseUsecase _getAllCourseUsecase;
+  final CreateCourseUsecase _createCourseUsecase;
   final DeleteCourseUsecase _deleteCourseUsecase;
-
   CourseBloc({
-    required CreateCourseUsecase createCourseUsecase,
     required GetAllCourseUsecase getAllCourseUsecase,
+    required CreateCourseUsecase createCourseUsecase,
     required DeleteCourseUsecase deleteCourseUsecase,
-  })  : _createCourseUsecase = createCourseUsecase,
-        _getAllCourseUsecase = getAllCourseUsecase,
+  })  : _getAllCourseUsecase = getAllCourseUsecase,
+        _createCourseUsecase = createCourseUsecase,
         _deleteCourseUsecase = deleteCourseUsecase,
         super(CourseState.initial()) {
-    on<LoadCourses>(_onLoadCoursees);
-    on<AddCourse>(_onAddCourse);
+    on<CourseLoad>(_onCourseLoad);
+    on<CreateCourse>(_onCreateCourse);
     on<DeleteCourse>(_onDeleteCourse);
-    add(LoadCourses());
+
+    add(CourseLoad());
   }
 
-  Future<void> _onLoadCoursees(
-      LoadCourses event, Emitter<CourseState> emit) async {
-    //progress bar ghumaune
-
+  Future<void> _onCourseLoad(
+    CourseLoad event,
+    Emitter<CourseState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true));
-
-    //data lai laune
-
-    var result = await _getAllCourseUsecase.call();
+    final result = await _getAllCourseUsecase();
     result.fold(
-        (l) => //in case of failure
-            emit(state.copyWith(isLoading: false, error: l.toString())),
-        (r) => //in case of success
-            emit(state.copyWith(isLoading: false, Coursees: r)));
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
+      (courses) => emit(state.copyWith(isLoading: false, courses: courses)),
+    );
   }
 
-  Future<void> _onAddCourse(AddCourse event, Emitter<CourseState> emit) async {
-    //progress bar ghumaune
-
+  Future<void> _onCreateCourse(
+    CreateCourse event,
+    Emitter<CourseState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true));
-
-    //data lai laune
-
-    var result = await _createCourseUsecase
-        .call(CreateCourseParams(CourseName: event.CourseName));
+    final result = await _createCourseUsecase(
+        CreateCourseParams(courseName: event.courseName));
     result.fold(
-        (l) => //in case of failure
-            emit(state.copyWith(isLoading: false, error: l.toString())),
-        (r) => //in case of success
-            emit(state.copyWith(isLoading: false)));
-
-    //database bata tanera feri load Coursees wala function recall garxa ra page refresh hunxa
-    add(LoadCourses());
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
+      (_) {
+        emit(state.copyWith(isLoading: false));
+        add(CourseLoad());
+      },
+    );
   }
 
   Future<void> _onDeleteCourse(
-      DeleteCourse event, Emitter<CourseState> emit) async {
-    //progress bar ghumaune
-
+    DeleteCourse event,
+    Emitter<CourseState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true));
-
-    //data lai laune
-
-    var result =
-        await _deleteCourseUsecase.call(DeleteCourseParams(event.CourseId));
+    final result = await _deleteCourseUsecase(DeleteCourseParams(id: event.id));
     result.fold(
-        (l) => //in case of failure
-            emit(state.copyWith(isLoading: false, error: l.toString())),
-        (r) => //in case of success
-            emit(state.copyWith(isLoading: false)));
-
-    //database bata tanera feri load Coursees wala function recall garxa ra page refresh hunxa
-    add(LoadCourses());
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
+      (_) {
+        emit(state.copyWith(isLoading: false));
+        add(CourseLoad());
+      },
+    );
   }
 }

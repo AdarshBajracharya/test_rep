@@ -6,27 +6,28 @@ import 'package:softwarica_student_management_bloc/features/course/domain/entity
 import 'package:softwarica_student_management_bloc/features/course/domain/repository/course_repository.dart';
 
 class CreateCourseParams extends Equatable {
-  final String CourseName;
+  final String courseName;
 
-  const CreateCourseParams({required this.CourseName});
+  const CreateCourseParams({required this.courseName});
+
+  // Empty constructor
+  const CreateCourseParams.empty() : courseName = '_empty.string';
+
   @override
-  List<Object?> get props => [CourseName];
+  List<Object?> get props => [courseName];
 }
 
-//use case domain layer ko repository snga dependednt xa kina  vane paxi internet xaina vane decision repository le linxa ani tei anusar data flow hunxa
-
-//sucess vaye paxi k retuurn garxa , params type
 class CreateCourseUsecase
     implements UsecaseWithParams<void, CreateCourseParams> {
-  final ICourseRepository repository;
+  final ICourseRepository _courseRepository;
 
-  CreateCourseUsecase(this.repository);
+  CreateCourseUsecase({required ICourseRepository courseRepository})
+      : _courseRepository = courseRepository;
 
   @override
   Future<Either<Failure, void>> call(CreateCourseParams params) {
-    //convert params to object.
-
-    var courseEntity = CourseEntity(courseName: params.CourseName);
-    return repository.createCourse(courseEntity);
+    return _courseRepository.createCourse(
+      CourseEntity(courseName: params.courseName),
+    );
   }
 }

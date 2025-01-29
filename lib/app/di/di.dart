@@ -1,96 +1,196 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:softwarica_student_management_bloc/core/network/hive_service.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/create_Course_usecase.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/delete_Course_usecase.dart';
-import 'package:softwarica_student_management_bloc/features/Course/domain/use_case/get_all_Course_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/auth/data/data_source/local_data_source/auth_local_datasource.dart';
+import 'package:softwarica_student_management_bloc/features/auth/data/data_source/remote_data_source/auth_remote_data_source.dart';
+import 'package:softwarica_student_management_bloc/features/auth/data/repository/auth_local_repository/auth_local_repository.dart';
+import 'package:softwarica_student_management_bloc/features/auth/data/repository/auth_remote_repository/auth_remote_repository.dart';
+import 'package:softwarica_student_management_bloc/features/auth/domain/use_case/login_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/auth/domain/use_case/register_user_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/auth/domain/use_case/upload_image_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/auth/presentation/view_model/login/login_bloc.dart';
 import 'package:softwarica_student_management_bloc/features/auth/presentation/view_model/signup/register_bloc.dart';
-import 'package:softwarica_student_management_bloc/features/batch/data/data_source/local_datasource/batch_local_datasource.dart';
+import 'package:softwarica_student_management_bloc/features/batch/data/data_source/local_datasource/batch_local_data_source.dart';
+import 'package:softwarica_student_management_bloc/features/batch/data/data_source/remote_datasource/batch_remote_data_source.dart';
 import 'package:softwarica_student_management_bloc/features/batch/data/repository/batch_local_repository.dart';
+import 'package:softwarica_student_management_bloc/features/batch/data/repository/batch_remote_repository.dart';
 import 'package:softwarica_student_management_bloc/features/batch/domain/use_case/create_batch_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/batch/domain/use_case/delete_batch_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/batch/domain/use_case/get_all_batch_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/batch/presentation/view_model/batch_bloc.dart';
-import 'package:softwarica_student_management_bloc/features/course/data/data_source/local_datasource/course_local_datasource.dart';
+import 'package:softwarica_student_management_bloc/features/course/data/data_source/local_datasource/course_local_data_source.dart';
+import 'package:softwarica_student_management_bloc/features/course/data/data_source/remote_datasource/course_remote_datasource.dart';
 import 'package:softwarica_student_management_bloc/features/course/data/repository/course_local_repository.dart';
+import 'package:softwarica_student_management_bloc/features/course/data/repository/course_remote_repository.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/create_course_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/delete_course_usecase.dart';
+import 'package:softwarica_student_management_bloc/features/course/domain/use_case/get_all_course_usecase.dart';
 import 'package:softwarica_student_management_bloc/features/course/presentation/view_model/course_bloc.dart';
 import 'package:softwarica_student_management_bloc/features/home/presentation/view_model/home_cubit.dart';
 import 'package:softwarica_student_management_bloc/features/splash/presentation/view_model/splash_cubit.dart';
 
+import '../../core/network/api_service.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
+  // First initialize hive service
+  await _initHiveService();
+  await _initApiService();
+
   await _initBatchDependencies();
   await _initCourseDependencies();
   await _initHomeDependencies();
   await _initRegisterDependencies();
   await _initLoginDependencies();
+
   await _initSplashScreenDependencies();
-  await _initHiveService();
+}
+
+_initApiService() {
+  // Remote Data Source
+  getIt.registerLazySingleton<Dio>(
+    () => ApiService(Dio()).dio,
+  );
 }
 
 _initHiveService() {
   getIt.registerLazySingleton<HiveService>(() => HiveService());
 }
 
-_initBatchDependencies() {
-  //bottom to top approac ma dependency banaune
+_initRegisterDependencies() {
+  // init local data source
+  getIt.registerLazySingleton(
+    () => AuthLocalDataSource(getIt<HiveService>()),
+  );
+  //remote data source
+  getIt.registerLazySingleton(() => AuthRemoteDataSource(getIt<Dio>()));
 
-  //local data source
-  getIt.registerLazySingleton<BatchLocalDatasource>(
-      () => BatchLocalDatasource(hiveService: getIt()));
+  // init local repository
+  getIt.registerLazySingleton(
+    () => AuthLocalRepository(getIt<AuthLocalDataSource>()),
+  );
 
-  //local data repository
-  getIt.registerLazySingleton<BatchLocalRepository>(
-      () => BatchLocalRepository(batchLocalDatasource: getIt()));
+//remote repository
+  getIt.registerLazySingleton(
+    () => AuthRemoteRepository(
+      authRemoteDataSource: getIt<AuthRemoteDataSource>(),
+    ),
+  );
 
-  //use case
+  // register use usecase
+  getIt.registerLazySingleton<RegisterUseCase>(
+    () => RegisterUseCase(
+      getIt<AuthRemoteRepository>(),
+    ),
+  );
+  getIt.registerLazySingleton<UploadImageUsecase>(
+      () => UploadImageUsecase(repository: getIt<AuthRemoteRepository>()));
 
-  getIt.registerLazySingleton<GetAllBatchUsecase>(
-      () => GetAllBatchUsecase(getIt<BatchLocalRepository>()));
-  getIt.registerLazySingleton<CreateBatchUsecase>(
-      () => CreateBatchUsecase(getIt<BatchLocalRepository>()));
-  getIt.registerLazySingleton<DeleteBatchUsecase>(
-      () => DeleteBatchUsecase(getIt<BatchLocalRepository>()));
-
-  //bloc
-
-  //register factory use garne kinaki harek state ko changes ma naya object create hunxa
-
-  getIt.registerFactory<BatchBloc>(() => BatchBloc(
-      createBatchUsecase: getIt<CreateBatchUsecase>(),
-      getAllBatchUsecase: getIt<GetAllBatchUsecase>(),
-      deleteBatchUsecase: getIt<DeleteBatchUsecase>()));
+  getIt.registerFactory<RegisterBloc>(
+    () => RegisterBloc(
+      uploadImageUsecase: getIt<UploadImageUsecase>(),
+      batchBloc: getIt<BatchBloc>(),
+      courseBloc: getIt<CourseBloc>(),
+      registerUseCase: getIt(),
+    ),
+  );
 }
 
 _initCourseDependencies() {
-  //bottom to top approac ma dependency banaune
+  // Local Data Source
+  getIt.registerFactory<CourseLocalDataSource>(
+      () => CourseLocalDataSource(hiveService: getIt<HiveService>()));
 
-  //local data source
-  getIt.registerLazySingleton<CourseLocalDatasource>(
-      () => CourseLocalDatasource(getIt()));
+  // Remote Data Source
+  getIt.registerLazySingleton<CourseRemoteDataSource>(
+    () => CourseRemoteDataSource(getIt<Dio>()),
+  );
 
-  //local data repository
-  getIt.registerLazySingleton<CourseLocalRepository>(
-      () => CourseLocalRepository(getIt()));
+  // Batch Local Repository
+  getIt.registerLazySingleton<CourseLocalRepository>(() =>
+      CourseLocalRepository(
+          courseLocalDataSource: getIt<CourseLocalDataSource>()));
 
-  //use case
+  // Batch Remote Repository
+  getIt.registerLazySingleton(
+    () => CourseRemoteRepository(
+      getIt<CourseRemoteDataSource>(),
+    ),
+  );
+
+  // Usecases
+  getIt.registerLazySingleton<CreateCourseUsecase>(
+    () => CreateCourseUsecase(
+      courseRepository: getIt<CourseRemoteRepository>(),
+    ),
+  );
 
   getIt.registerLazySingleton<GetAllCourseUsecase>(
-      () => GetAllCourseUsecase(getIt<CourseLocalRepository>()));
-  getIt.registerLazySingleton<CreateCourseUsecase>(
-      () => CreateCourseUsecase(getIt<CourseLocalRepository>()));
+    () => GetAllCourseUsecase(
+      courseRepository: getIt<CourseRemoteRepository>(),
+    ),
+  );
+
   getIt.registerLazySingleton<DeleteCourseUsecase>(
-      () => DeleteCourseUsecase(getIt<CourseLocalRepository>()));
+    () => DeleteCourseUsecase(
+      courseRepository: getIt<CourseRemoteRepository>(),
+    ),
+  );
 
-  //bloc
+  // Bloc
 
-  //register factory use garne kinaki harek state ko changes ma naya object create hunxa
-
-  getIt.registerFactory<CourseBloc>(() => CourseBloc(
+  getIt.registerFactory<CourseBloc>(
+    () => CourseBloc(
       createCourseUsecase: getIt<CreateCourseUsecase>(),
+      getAllCourseUsecase: getIt<GetAllCourseUsecase>(),
       deleteCourseUsecase: getIt<DeleteCourseUsecase>(),
-      getAllCourseUsecase: getIt<GetAllCourseUsecase>()));
+    ),
+  );
+}
+
+_initBatchDependencies() async {
+  // Local Data Source
+  getIt.registerFactory<BatchLocalDataSource>(
+      () => BatchLocalDataSource(hiveService: getIt<HiveService>()));
+
+  // Remote Data Source
+  getIt.registerLazySingleton<BatchRemoteDataSource>(
+    () => BatchRemoteDataSource(getIt<Dio>()),
+  );
+
+  // Batch Local Repository
+  getIt.registerLazySingleton<BatchLocalRepository>(() => BatchLocalRepository(
+      batchLocalDataSource: getIt<BatchLocalDataSource>()));
+
+  // Batch Remote Repository
+  getIt.registerLazySingleton(
+    () => BatchRemoteRepository(
+      getIt<BatchRemoteDataSource>(),
+    ),
+  );
+
+  // Usecases
+  getIt.registerLazySingleton<CreateBatchUseCase>(
+    () => CreateBatchUseCase(batchRepository: getIt<BatchRemoteRepository>()),
+  );
+
+  getIt.registerLazySingleton<GetAllBatchUseCase>(
+    () => GetAllBatchUseCase(batchRepository: getIt<BatchRemoteRepository>()),
+  );
+
+  getIt.registerLazySingleton<DeleteBatchUsecase>(
+    () => DeleteBatchUsecase(batchRepository: getIt<BatchRemoteRepository>()),
+  );
+
+  // Bloc
+  getIt.registerFactory<BatchBloc>(
+    () => BatchBloc(
+      createBatchUseCase: getIt<CreateBatchUseCase>(),
+      getAllBatchUseCase: getIt<GetAllBatchUseCase>(),
+      deleteBatchUsecase: getIt<DeleteBatchUsecase>(),
+    ),
+  );
 }
 
 _initHomeDependencies() async {
@@ -99,21 +199,18 @@ _initHomeDependencies() async {
   );
 }
 
-_initRegisterDependencies() async {
-  getIt.registerFactory<RegisterBloc>(
-    () => RegisterBloc(
-      // loginBloc: getIt<LoginBloc>(),
-      batchBloc: getIt<BatchBloc>(),
-      courseBloc: getIt<CourseBloc>(),
+_initLoginDependencies() async {
+  getIt.registerLazySingleton<LoginUseCase>(
+    () => LoginUseCase(
+      getIt<AuthRemoteRepository>(),
     ),
   );
-}
 
-_initLoginDependencies() async {
   getIt.registerFactory<LoginBloc>(
     () => LoginBloc(
       registerBloc: getIt<RegisterBloc>(),
       homeCubit: getIt<HomeCubit>(),
+      loginUseCase: getIt<LoginUseCase>(),
     ),
   );
 }

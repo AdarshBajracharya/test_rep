@@ -17,15 +17,15 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AuthHiveModel(
-      authId: fields[0] as String?,
-      fname: fields[1] as String,
-      lname: fields[2] as String,
+      studentId: fields[0] as String?,
+      fName: fields[1] as String,
+      lName: fields[2] as String,
       image: fields[3] as String?,
-      phoneNo: fields[4] as String,
+      phone: fields[4] as String,
       batch: fields[5] as BatchHiveModel,
       courses: (fields[6] as List).cast<CourseHiveModel>(),
       username: fields[7] as String,
-      password: fields[8] as String,
+      password: fields[8] as String?,
     );
   }
 
@@ -34,15 +34,15 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
     writer
       ..writeByte(9)
       ..writeByte(0)
-      ..write(obj.authId)
+      ..write(obj.studentId)
       ..writeByte(1)
-      ..write(obj.fname)
+      ..write(obj.fName)
       ..writeByte(2)
-      ..write(obj.lname)
+      ..write(obj.lName)
       ..writeByte(3)
       ..write(obj.image)
       ..writeByte(4)
-      ..write(obj.phoneNo)
+      ..write(obj.phone)
       ..writeByte(5)
       ..write(obj.batch)
       ..writeByte(6)
